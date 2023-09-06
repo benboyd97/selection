@@ -1,5 +1,5 @@
 from jax.scipy.stats import norm, multivariate_normal,uniform
-from jax import random
+from jax import random,jit
 import jax.numpy as np
 
 def Normal():
@@ -13,7 +13,7 @@ def Normal():
             return norm.logpdf(inputs,loc=0,scale=1).sum(1)
 
         def sample(rng, params, num_samples=1):
-            return random.normal(rng, (num_samples, input_dim))*1
+            return random.normal(rng, (num_samples, input_dim))
 
         return (), log_pdf, sample
 
@@ -40,7 +40,6 @@ def Flow(transformation, prior=Normal()):
         >>> init_fun = flows.Flow(transformation, Normal())
         >>> params, log_pdf, sample = init_fun(rng, input_dim)
     """
-
     def init_fun(rng,conditional_dim):
         transformation_rng, prior_rng = random.split(rng)
         params, direct_fun, inverse_fun = transformation(transformation_rng,conditional_dim)
@@ -49,7 +48,8 @@ def Flow(transformation, prior=Normal()):
         def log_pdf(params, inputs):
             u, log_det = direct_fun(params, inputs)
             log_probs = prior_log_pdf(prior_params, u[:,:1])
-            return log_probs + log_det
+            return log_probs + log_det -0.5
+
         def sample(rng, params,conditionals, num_samples=1):
             prior_samples = prior_sample(rng, prior_params, num_samples)
             x=inverse_fun(params, np.column_stack((prior_samples,conditionals)))[0]

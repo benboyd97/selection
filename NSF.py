@@ -1,6 +1,6 @@
 import jax.numpy as np
 import numpy as onp
-from jax import nn, ops, random
+from jax import nn, ops, random,jit
 from jax.example_libraries import stax
 from jax.example_libraries.stax import (Dense, Tanh, Flatten, Relu, LogSoftmax, Softmax, Exp,Sigmoid,Softplus,LeakyRelu)
 
@@ -200,6 +200,7 @@ def NeuralSpline1D(network,K=5, B=3, hidden_dim=64):
     def init_fun(rng, input_dim, **kwargs):
         params, apply_fun = network(rng,input_dim,3*K-1,hidden_dim)
 
+
         def direct_fun(params, x):
             log_det = np.zeros(x.shape[0])
             out = apply_fun(params,x[:,1:]).reshape(-1, 1,3 * K - 1)
@@ -224,7 +225,7 @@ def NeuralSpline1D(network,K=5, B=3, hidden_dim=64):
 
 
             out, ld = unconstrained_RQS( z[:,:1], W, H, D, inverse=True, tail_bound=B)
-            log_det += np.sum(ld, axis=1)
+            log_det -= np.sum(ld, axis=1)
             return np.concatenate([out,z[:,1:]], axis=1), log_det.reshape((z.shape[0],))
 
         return params, direct_fun, inverse_fun
