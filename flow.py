@@ -48,7 +48,7 @@ def Flow(transformation, prior=Normal()):
         def log_pdf(params, inputs):
             u, log_det = direct_fun(params, inputs)
             log_probs = prior_log_pdf(prior_params, u[:,:1])
-            return log_probs + log_det -0.5
+            return log_probs + log_det 
 
         def sample(rng, params,conditionals, num_samples=1):
             prior_samples = prior_sample(rng, prior_params, num_samples)
