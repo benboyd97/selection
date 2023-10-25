@@ -227,9 +227,15 @@ class SkewNormalPlus(Distribution):
     
 
     @validate_sample
-    def log_prob(self, value):
+    def log_prob(self, value,mcmc=False):
 
-        value = (value-self.m_int)/self.sigma_int
+        if mcmc:
+            
+            value = (value-self.m_int.reshape(len(value),))/self.sigma_int
+            value = value.reshape(1,-1)
+        else:
+            value = (value-self.m_int)/self.sigma_int
+        
 
         return js.norm.logpdf(value) + js.norm.logcdf(self.b * value +self.a) - js.norm.logcdf(self.a / jnp.sqrt(1 + self.b**2))-jnp.log(self.sigma_int)
 
